@@ -14,6 +14,7 @@ void setup() {
 
 void loop() { 
   int count = 0; 
+
   for(int j=0; j < 2; j++) { 
     for(int i=0; i<8; i++) {
       lc.setDigit(j,7-i,count, true); // Decimal point enabled 

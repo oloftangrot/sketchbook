@@ -50,8 +50,6 @@ NOTE_C7, NOTE_CS7, NOTE_D7, NOTE_DS7, NOTE_E7, NOTE_F7, NOTE_FS7, NOTE_G7, NOTE_
 //char *song = "DasBoot:d=4,o=5,b=100:d#.4,8d4,8c4,8d4,8d#4,8g4,a#.4,8a4,8g4,8a4,8a#4,8d,2f.,p,f.4,8e4,8d4,8e4,8f4,8a4,c.,8b4,8a4,8b4,8c,8e,2g.,2p";
 char *song = "HotelCal:d=4,o=5,b=160:a,8c6,8e6,8p,8a,8p,a.6,a,c6,e6,e,8g#,8b,8p,8e,8p,e.6,e,g#,b,g,8b,8d6,8p,8g,8p,g.6,g,b,d6,d,8f#,8a,8p,8d,8p,d.6,d,f#,a,f,8a,8c6,8p,8f,8p,f.6,f,a,c6,c,8e,8g,8p,8c,8p,c.6,c,e,g,d,8f,8a,8p,8d,8p,d.6,d,f,a,e,8g#,8b,8p,8e,8p,e.6,e,g#,b,2a.";
 
-
-
 void setup(void)
 {
   Serial.begin(9600);
