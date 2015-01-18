@@ -126,9 +126,11 @@ void tlc5615Write( unsigned int d ) {
 ** into a high and low octet.
 */
 void tlc5615Write( preCalc pC ) {
-  digitalWrite(slaveSelectPin,LOW);   // take the SS pin low to select the chip:
+  PORTB &= ~_BV( PB2 );   // Set the SS pin low to select the chip:
+//  digitalWrite(slaveSelectPin,LOW);   // take the SS pin low to select the chip:
   SPI.transfer( pC.hi );
   SPI.transfer( pC.lo );
-  digitalWrite(slaveSelectPin,HIGH);   // take the SS pin high to de-select the chip:
+  PORTB |= _BV( PB2 );   // Set the SS pin high to unselect the chip:
+//  digitalWrite(slaveSelectPin,HIGH);   // take the SS pin high to de-select the chip:
 }
 
