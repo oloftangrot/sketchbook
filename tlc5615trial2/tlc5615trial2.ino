@@ -64,8 +64,8 @@ void setup() {
   for ( int j = 0; j < sig4_table_size; j++ ) {
      unsigned int t = (unsigned int) ( 512 + 511 * sin ( j * 2 * 3.1415f/sig4_table_size ) );
     t = t << 2; // Shift in the two dummy bits.
-    sig3[j].lo = t;
-    sig3[j].hi = t>>8;
+    sig4[j].lo = t;
+    sig4[j].hi = t>>8;
   }
 }
 
@@ -95,7 +95,7 @@ void loop() {
 #endif
 #if 1
   tlc5615Write( pCtab[i++] );
-  if ( i >= pCsiz )  i = 0; //  
+  if ( i >= pCsiz )  i = 0; // 
   if ( time++ > 30000 ) {
     if ( sig ) {
       pCtab = sig4;
