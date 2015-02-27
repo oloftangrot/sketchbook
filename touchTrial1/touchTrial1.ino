@@ -25,8 +25,9 @@ void setup(void) {
   pinMode( HC245, OUTPUT );
   digitalWrite( HC245, LOW );
 }
-
+int x, y;
 void loop(void) {
+#if 0
   // a point object holds x y and z coordinates
   TSPoint p = ts.getPoint();
   
@@ -36,5 +37,17 @@ void loop(void) {
      Serial.print("X = "); Serial.print(p.x);
      Serial.print("\tY = "); Serial.print(p.y);
      Serial.print("\tPressure = "); Serial.println(p.z);
+  }
+#endif
+  x = 0, y = 0;
+  for ( int i = 0; i < 10; i++ ) {
+    x += ts.readTouchX();
+    y += ts.readTouchY();
+  }
+  x = x / 10 - 750;
+  y = y / 10 - 750;
+  if ( x < 260 && y < 260 ) {
+    Serial.print("X = "); Serial.print( x ); 
+    Serial.print("\tY = "); Serial.println( y );
   }
 }
