@@ -23,7 +23,7 @@ TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
 void setup(void) {
   Serial.begin(9600);
   pinMode( HC245, OUTPUT );
-  digitalWrite( HC245, LOW );
+  digitalWrite( HC245, LOW ); // Set bus tranceiver to disable the graphic controller-
 }
 int x, y;
 void loop(void) {
