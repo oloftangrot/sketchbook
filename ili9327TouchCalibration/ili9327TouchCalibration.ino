@@ -1,4 +1,6 @@
+extern "C" {
 #include "calibrate.h"
+}
 #include "TouchScreen.h"
 //   ic:ili9327  
 #define LCD_RD   A0
@@ -19,9 +21,9 @@
 
 // calibration points for 240x400 screen
 const POINT cal_pa[3] = { // See Atmel application note AVR341
-  { 120, 360 },   // P1 : 50% max height, max width - 10 %
-  { 216, 200 },   // P2 : Max height - 10 %, 50% max widht
-  { 24, 40 }      // P3 : 10%, 10 %
+  { 120     , 400 - 40 },   // P1 : 50 % max height, max width - 10 %
+  { 40      , 200      },   // P2 : 10 % max height , 50% max widht
+  { 240 - 24, 40       }    // P3 : max height - 10%, 10 % max width
 };
 POINT res_pa[3]; // Result from screen read back 
 MATRIX M;
@@ -30,7 +32,7 @@ const char s = 2;
 void doCalibration( void )
 {
   for ( int i = 0; i < 3; i++ ) { // Draw the points, assuming grafics is enabled.
-    Rect( cal_pa[i].x - s, cal_pa[i].y -s, 2 * s, 2 * s, random(65535)); 
+    Rect( cal_pa[i].x - s, cal_pa[i].y - s, 2 * s, 2 * s, 0xff ); 
   }
   digitalWrite( HC245, LOW ); // Set bus tranceiver to disable the graphic controller.
   TouchScreen ts = TouchScreen( XP, YP, XM, YM, 300 );
@@ -39,8 +41,8 @@ void doCalibration( void )
     res_pa[i].x = 0;
     res_pa[i].y = 0;
     Serial.print( "Press P" ); 
-    Serial.print ( i + 1 ); 
-    Serial.println( "..." );
+    Serial.print ( i + 1 ); Serial.print( " (" ); Serial.print( cal_pa[i].x );
+    Serial.print( ", " ); Serial.print( cal_pa[i].y ); Serial.println( ")..." );
     for ( int j = 0; j < 10; ) {
       TSPoint p = ts.getPoint();
       if ( p.z > MINPRESSURE && p.z < MAXPRESSURE ) {
@@ -54,6 +56,13 @@ void doCalibration( void )
     }
     res_pa[i].x = res_pa[i].x / 10;
     res_pa[i].y = res_pa[i].y / 10;
+    if ( i < 2 ) {
+      Serial.println( "Stop pressing, wait for the next point." );
+      delay( 5000 );
+    }
+    else {
+      Serial.println( "Done!" );
+    }
   }
   setCalibrationMatrix( cal_pa, res_pa, &M );
 }
@@ -81,6 +90,7 @@ void setup()
   LCD_Clear(0x00);
   Serial.begin(9600);
   Serial.println( "Touch screen calibration V0.1 started." );
+  doCalibration();
 }
 
 void loop() {
