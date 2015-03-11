@@ -28,16 +28,19 @@ const POINT cal_pa[3] = { // See Atmel application note AVR341
 POINT res_pa[3]; // Result from screen read back 
 MATRIX M;
 const char s = 2;
+TouchScreen ts = TouchScreen( XP, YP, XM, YM, 300 );
 
 void doCalibration( void )
 {
   for ( int i = 0; i < 3; i++ ) { // Draw the points, assuming grafics is enabled.
-    Rect( cal_pa[i].x - s, cal_pa[i].y - s, 2 * s, 2 * s, 0xff ); 
+//    Rect( cal_pa[i].x - s, cal_pa[i].y - s, 2 * s, 2 * s, 0xff ); 
   }
-  digitalWrite( HC245, LOW ); // Set bus tranceiver to disable the graphic controller.
-  TouchScreen ts = TouchScreen( XP, YP, XM, YM, 300 );
+//  digitalWrite( HC245, LOW ); // Set bus tranceiver to disable the graphic controller.
 
   for ( int i = 0; i < 3; i++ ) { // Loop over the calibration points
+    setGraphics();
+    Rect( cal_pa[i].x - s, cal_pa[i].y - s, 2 * s, 2 * s, 0xff ); 
+    digitalWrite( HC245, LOW ); // Set bus tranceiver to disable the graphic controller.
     res_pa[i].x = 0;
     res_pa[i].y = 0;
     Serial.print( "Press P" ); 
@@ -58,18 +61,34 @@ void doCalibration( void )
     res_pa[i].y = res_pa[i].y / 10;
     if ( i < 2 ) {
       Serial.println( "Stop pressing, wait for the next point." );
-      delay( 5000 );
+      setGraphics();
+      Rect( cal_pa[i].x - 2 * s, cal_pa[i].y - 2 * s, 4 * s, 4 * s, 0xff ); 
+      delay( 2000 );
     }
     else {
       Serial.println( "Done!" );
+      setGraphics();
+      Rect( cal_pa[i].x - 2 * s, cal_pa[i].y - 2 * s, 4 * s, 4 * s, 0xff ); 
     }
   }
   setCalibrationMatrix( cal_pa, res_pa, &M );
+  delay( 2000 );
+}
+
+void setGraphics( void )
+{
+  digitalWrite( HC245, HIGH ); // Set bus tranceiver to enable the graphic controller.
+  pinMode( A1, OUTPUT );
+  pinMode( A2, OUTPUT );
+  digitalWrite( A1, HIGH );
+  digitalWrite( A2, HIGH );
 }
 
 void setup()
 {
-  for(int p = 3; p < 10; p++ ) 
+  Serial.begin(9600);
+  Serial.println( "Touch screen calibration V0.1 started." );
+  for(int p = 3; p < 10; p++ ) // TODO remove this loop?
   {
     pinMode( p, OUTPUT );
   }
@@ -88,12 +107,20 @@ void setup()
   digitalWrite( A4, HIGH );
   Lcd_Init();
   LCD_Clear(0x00);
-  Serial.begin(9600);
-  Serial.println( "Touch screen calibration V0.1 started." );
   doCalibration();
 }
 
 void loop() {
+  digitalWrite( HC245, LOW ); // Set bus tranceiver to disable the graphic controller.
+  TSPoint p = ts.getPoint();
+  POINT res_p, dis_p;
+  if ( p.z > MINPRESSURE && p.z < MAXPRESSURE ) {
+    res_p.x = p.x;
+    res_p.y = p.y;
+    getDisplayPoint( &dis_p, &res_p, &M ); // Convert touch point to display coordinates.
+    setGraphics();
+    Rect( dis_p.x - s, dis_p.y - s, 2 * s, 2 * s, 0xff ); // Show result
+  }
 }
 
 void Lcd_Writ_Bus( char VH )
