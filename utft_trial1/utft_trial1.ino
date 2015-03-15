@@ -28,11 +28,16 @@ extern uint8_t SmallFont[];
 // CTE TFT LCD/SD Shield for Arduino Mega      : <display model>,38,39,40,41
 //
 // Remember to change the model parameter to suit your display module!
+#define HC245 2 // The enable pin for the resitive/ili9327 transceiver
+
 UTFT myGLCD( ILI9327, A2, A1, A3, A4 );
 
 void setup()
 {
   randomSeed(analogRead(0));
+
+  pinMode( HC245, OUTPUT );
+  digitalWrite( HC245, HIGH ); // Set bus tranceiver to enable the graphic controller.
   
 // Setup the LCD
   myGLCD.InitLCD();
