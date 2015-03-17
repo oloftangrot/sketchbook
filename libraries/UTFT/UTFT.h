@@ -45,7 +45,7 @@
 #ifndef UTFT_h
 #define UTFT_h
 
-#define UTFT_VERSION	279
+#define UTFT_VERSION	278
 
 #define LEFT 0
 #define RIGHT 9999
@@ -71,8 +71,8 @@
 #define S6D1121_8		14
 #define S6D1121_16		15
 #define	SSD1289LATCHED	16
-//#define NOT_IN_USE	17
-//#define NOT_IN_USE	18
+#define ILI9320_8		17
+#define ILI9320_16		18
 #define SSD1289_8		19
 #define	SSD1963_800ALT	20
 #define ILI9481			21
@@ -85,7 +85,7 @@
 #define ILI9486			28
 #define CPLD			29
 #define HX8353C			30
-#define ST7735_ALT		31
+#define ILI9327_8		31
 
 #define ITDB32			0	// HX8347-A (16bit)
 #define ITDB32WC		1	// ILI9327  (16bit)
@@ -93,6 +93,7 @@
 #define ITDB32S			2	// SSD1289  (16bit)
 #define TFT01_32		2	// SSD1289  (16bit)
 #define CTE32			2	// SSD1289  (16bit)
+#define GEEE32			2	// SSD1289  (16bit)
 #define ITDB24			3	// ILI9325C (8bit)
 #define ITDB24D			4	// ILI9325D (8bit)
 #define ITDB24DWOT		4	// ILI9325D (8bit)
@@ -102,6 +103,7 @@
 #define DMTFT28103      4   // ILI9325D (8bit)
 #define TFT01_24_16		5	// ILI9325D (16bit)
 #define ITDB22			6	// HX8340-B (8bit)
+#define GEEE22			6	// HX8340-B (8bit)
 #define ITDB22SP		7	// HX8340-B (Serial 4Pin)
 #define ITDB32WD		8	// HX8352-A (16bit)
 #define TFT01_32WD		8	// HX8352-A	(16bit)
@@ -120,8 +122,8 @@
 #define ITDB24E_16		15	// S6D1121	(16bit)
 #define INFINIT32		16	// SSD1289	(Latched 16bit) -- Legacy, will be removed later
 #define ELEE32_REVA		16	// SSD1289	(Latched 16bit)
-//#define NOT_IN_USE	17	
-//#define NOT_IN_USE	18	
+#define GEEE24			17	// ILI9320	(8bit)
+#define GEEE28			18	// ILI9320	(16bit)
 #define ELEE32_REVB		19	// SSD1289	(8bit)
 #define TFT01_70		20	// SSD1963	(16bit) 800x480 Alternative Init
 #define CTE70			20	// SSD1963	(16bit) 800x480 Alternative Init
@@ -134,8 +136,6 @@
 #define DMTFT22102      23  // S6D0164  (8bit)
 #define TFT01_18SP		24	// ST7735S  (Serial 5Pin)
 #define TFT01_22SP		25	// ILI9341	(Serial 5Pin)
-#define TFT01_24SP		25	// ILI9341	(Serial 5Pin)
-#define TFT22SHLD		25	// ILI9341	(Serial 5Pin)
 #define DMTFT28105      25  // ILI9341  (Serial 5Pin)
 #define MI0283QT9		26  // ILI9341	(Serial 4Pin)
 #define CTE35IPS		27	// R61581	(16bit)
@@ -144,7 +144,8 @@
 #define CTE50CPLD		29	// CPLD		(16bit)
 #define CTE70CPLD		29	// CPLD		(16bit)
 #define DMTFT18101      30  // HX8353C  (Serial 5Pin)
-#define TFT18SHLD		31	// ST7735	(Serial 5Pin) Alternative Init
+#define NIC35WS			31	// ILI9327  (8bit)
+
 
 #define SERIAL_4PIN		4
 #define SERIAL_5PIN		5
@@ -174,6 +175,18 @@
 #define VGA_PURPLE		0x8010
 #define VGA_TRANSPARENT	0xFFFFFFFF
 
+
+#define MCUFRIEND_35_TFTLCD_FOR_ARDUINO_2560_LCD_WRIT_BUS 1
+#define MCUFRIEND_35_TFTLCD_FOR_ARDUINO_2560_SHOW_COLOR_BAR 1
+#define MCUFRIEND_35_TFTLCD_FOR_ARDUINO_2560_DISPLAY_TRANSFER_MODE 1 //8 bit mode
+#define MCUFRIEND_35_TFTLCD_FOR_ARDUINO_2560_CLR_SCR 1
+#define MCUFRIEND_35_TFTLCD_FOR_ARDUINO_2560_SET_PIXEL 1
+
+//optional:
+#define MCUFRIEND_35_TFTLCD_FOR_ARDUINO_2560_WRITE_COM_DATA 1
+#define MCUFRIEND_35_TFTLCD_FOR_ARDUINO_2560_INIT_LCD 1
+#define MCUFRIEND_35_TFTLCD_FOR_ARDUINO_2560_INIT_LCD2 1
+
 #if defined(__AVR__)
 	#include "Arduino.h"
 	#include "hardware/avr/HW_AVR_defines.h"
@@ -199,6 +212,9 @@ class UTFT
 	public:
 		UTFT();
 		UTFT(byte model, int RS, int WR, int CS, int RST, int SER=0);
+#ifdef MCUFRIEND_35_TFTLCD_FOR_ARDUINO_2560_SHOW_COLOR_BAR
+		void show_color_bar();
+#endif
 		void	InitLCD(byte orientation=LANDSCAPE);
 		void	clrScr();
 		void	drawPixel(int x, int y);
@@ -254,7 +270,8 @@ class UTFT
 		_current_font	cfont;
 		boolean			_transparent;
 
-		void LCD_Writ_Bus(char VH,char VL, byte mode);
+		void LCD_Writ_Bus8(char VH,char VL, byte mode);
+		void LCD_Writ_Bus16(char VH,char VL, byte mode);
 		void LCD_Write_COM(char VL);
 		void LCD_Write_DATA(char VH,char VL);
 		void LCD_Write_DATA(char VL);
