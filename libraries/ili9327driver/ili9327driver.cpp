@@ -1,54 +1,47 @@
 #include "Arduino.h"
+#include "ili9327driver.h"
 //
 //   This is a driver for the TFT 3.5 Inch 400x240 touch shield from http://www.mcufriends.com
 //   Since the shield is fixed the wiring defines is given here and
 //   there is no interface to define them using an API call. The graphic controller is controlled 
-//   in serial 'SPI' mode.
+//   in serial 8-bit mode.
 //
 namespace ili9327 {
 
-#define LCD_RD   A0
-#define LCD_WR   A1     
-#define LCD_RS   A2        
-#define LCD_CS   A3       
-#define LCD_REST A4
-
-void Lcd_Writ_Bus( char VH )
+void Lcd_Writ_Bus( unsigned char data )
 {
-  unsigned char i,temp,data; 
-  data = VH;
-  for ( i = 8; i <= 9; i++ )
-  {
-    temp = ( data & 0x01 );
-    if(temp)
-      digitalWrite( i, HIGH );
-    else
-      digitalWrite( i, LOW );
-    data = data >> 1;
-  }	
-  for ( i = 2; i <= 7; i++ )
-  {
-    temp = ( data & 0x01 );
-    if( temp )
-      digitalWrite( i, HIGH );
-    else
-      digitalWrite( i, LOW );
-    data = data >> 1;
-  }	 
+  unsigned char i; 
+	unsigned char mask = 1;
 
-  digitalWrite( LCD_WR, LOW );
-  digitalWrite( LCD_WR, HIGH );
+  for ( i = 0; i <= 1; i++ ) { // Loop over Arduino Pin 8 to 9
+    if ( data & 0x01 )
+      sbi( PORTB, mask ) ; // digitalWrite( i, HIGH );
+    else
+      cbi( PORTB, mask ) ; // digitalWrite( i, LOW );
+    data = data >> 1;
+    mask = mask << 1;
+  }	
+  for ( /* i= 2 */; i <= 7; i++ ) { // Loop over Arduino Pin 2 to 7
+    if( data & 0x01 )
+      sbi( PORTD, mask ) ; // digitalWrite( i, HIGH );
+    else
+      cbi( PORTD, mask ) ; // digitalWrite( i, LOW );
+    data = data >> 1;
+    mask = mask << 1;
+  }	;
+  cbi( PORTC, (1 << 1) ); //  digitalWrite( LCD_WR, LOW );
+  sbi( PORTC, (1 << 1) ); //  digitalWrite( LCD_WR, HIGH );
 }
 
 void Lcd_Write_Com( char VH )  
 {   
-  digitalWrite( LCD_RS, LOW );
+  cbi( PORTC, ( 1<<2 ) ); //  digitalWrite( LCD_RS, LOW );
   Lcd_Writ_Bus( VH );
 }
 
 void Lcd_Write_Data( char VH )
 {
-  digitalWrite( LCD_RS, HIGH );
+  sbi( PORTC, ( 1 << 2 ) ); // digitalWrite( LCD_RS, HIGH );
   Lcd_Writ_Bus( VH );
 }
 
@@ -61,13 +54,14 @@ void Lcd_Write_Com_Data( int com, int dat )
 void Address_set( unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2 )
 {
   Lcd_Write_Com( 0x2a ); // Set_column_address 4 parameters
+
   Lcd_Write_Data( x1 >> 8 );
   Lcd_Write_Data( x1 );
   Lcd_Write_Data( x2 >> 8 );
   Lcd_Write_Data( x2 );
 
   Lcd_Write_Com( 0x2b ); // Set_page_address 4 parameters
-  Lcd_Write_Data( y1 >>8 );
+  Lcd_Write_Data( y1 >> 8 );
   Lcd_Write_Data( y1 );
   Lcd_Write_Data( y2 >> 8 );
   Lcd_Write_Data( y2 );
@@ -183,8 +177,8 @@ void H_line(unsigned int x, unsigned int y, unsigned int l, unsigned int c)
 {	
   unsigned int i, j;
   Lcd_Write_Com( 0x02c ); //write_memory_start
-  digitalWrite( LCD_RS,HIGH );
-  digitalWrite( LCD_CS,LOW );
+  sbi( PORTC, ( 1 << 2 ) ); // digitalWrite( LCD_RS,HIGH );
+  cbi( PORTC, ( 1 << 3 ) ); // digitalWrite( LCD_CS,LOW );
   l = l + x;
   Address_set(x, y, l, y );
   j = l * 2;
@@ -192,15 +186,15 @@ void H_line(unsigned int x, unsigned int y, unsigned int l, unsigned int c)
   {
     Lcd_Write_Data(c);
   }
-  digitalWrite(LCD_CS,HIGH);   
+  sbi( PORTC, ( 1 << 3 ) ); // digitalWrite(LCD_CS,HIGH);   
 }
 
 void V_line(unsigned int x, unsigned int y, unsigned int l, unsigned int c) 
 {	
   unsigned int i,j;
   Lcd_Write_Com( 0x02c ); //write_memory_start
-  digitalWrite( LCD_RS, HIGH );
-  digitalWrite( LCD_CS, LOW );
+  sbi( PORTC, ( 1 << 2 ) ); // digitalWrite( LCD_RS,HIGH );
+  cbi( PORTC, ( 1 << 3 ) ); // digitalWrite( LCD_CS,LOW );
   l=l+y;
   Address_set( x, y, x, l );
   j = l * 2;
@@ -208,7 +202,7 @@ void V_line(unsigned int x, unsigned int y, unsigned int l, unsigned int c)
   {
     Lcd_Write_Data(c);
   }
-  digitalWrite(LCD_CS,HIGH);   
+  sbi( PORTC, ( 1 << 3 ) ); // digitalWrite(LCD_CS,HIGH);   
 }
 
 void Rect(unsigned int x,unsigned int y,unsigned int w,unsigned int h,unsigned int c)
@@ -245,5 +239,14 @@ void Lcd_Clear( unsigned int j )
     }
   digitalWrite(LCD_CS,HIGH);   
 }
-
+  void Plot( unsigned int x, unsigned int y, unsigned int c )
+	{
+		Lcd_Write_Com( 0x02c ); //write_memory_start
+		digitalWrite( LCD_RS, HIGH );
+		digitalWrite( LCD_CS, LOW );
+		Address_set( x, y, x, y + 1 );
+		Lcd_Write_Data(c);
+		Lcd_Write_Data(c);
+		digitalWrite(LCD_CS,HIGH);  
+	}
 }
