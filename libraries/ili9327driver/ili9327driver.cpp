@@ -10,25 +10,10 @@ namespace ili9327 {
 
 void Lcd_Writ_Bus( unsigned char data )
 {
-  unsigned char i; 
-	unsigned char mask = 1;
-
-  for ( i = 0; i <= 1; i++ ) { // Loop over Arduino Pin 8 to 9
-    if ( data & 0x01 )
-      sbi( PORTB, mask ) ; // digitalWrite( i, HIGH );
-    else
-      cbi( PORTB, mask ) ; // digitalWrite( i, LOW );
-    data = data >> 1;
-    mask = mask << 1;
-  }	
-  for ( /* i= 2 */; i <= 7; i++ ) { // Loop over Arduino Pin 2 to 7
-    if( data & 0x01 )
-      sbi( PORTD, mask ) ; // digitalWrite( i, HIGH );
-    else
-      cbi( PORTD, mask ) ; // digitalWrite( i, LOW );
-    data = data >> 1;
-    mask = mask << 1;
-  }	;
+  PORTD &= 0x03;
+  PORTD |= ( data & 0xfc );
+  PORTB &= 0xfc;
+  PORTB |= ( data & 0x03 );
   cbi( PORTC, (1 << 1) ); //  digitalWrite( LCD_WR, LOW );
   sbi( PORTC, (1 << 1) ); //  digitalWrite( LCD_WR, HIGH );
 }
