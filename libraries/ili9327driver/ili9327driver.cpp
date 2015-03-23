@@ -20,13 +20,13 @@ void Lcd_Writ_Bus( unsigned char data )
 
 void Lcd_Write_Com( char VH )  
 {   
-  cbi( PORTC, ( 1<<2 ) ); //  digitalWrite( LCD_RS, LOW );
+  cbi( PORTC, LCD_RS_BitMask ); //  digitalWrite( LCD_RS, LOW );
   Lcd_Writ_Bus( VH );
 }
 
 void Lcd_Write_Data( char VH )
 {
-  sbi( PORTC, ( 1 << 2 ) ); // digitalWrite( LCD_RS, HIGH );
+  sbi( PORTC, LCD_RS_BitMask ); // digitalWrite( LCD_RS, HIGH );
   Lcd_Writ_Bus( VH );
 }
 
@@ -162,40 +162,42 @@ void H_line(unsigned int x, unsigned int y, unsigned int l, unsigned int c)
 {	
   unsigned int i, j;
   Lcd_Write_Com( 0x02c ); //write_memory_start
-  sbi( PORTC, ( 1 << 2 ) ); // digitalWrite( LCD_RS,HIGH );
-  cbi( PORTC, ( 1 << 3 ) ); // digitalWrite( LCD_CS,LOW );
+  sbi( PORTC, LCD_RS_BitMask ); // digitalWrite( LCD_RS,HIGH );
+  cbi( PORTC, LCD_CS_BitMask ); // digitalWrite( LCD_CS,LOW );
   l = l + x;
   Address_set(x, y, l, y );
   j = l * 2;
   for ( i = 1; i <= j; i++ )
   {
-    Lcd_Write_Data(c);
+    Lcd_Write_Data( c >> 8);
+    Lcd_Write_Data( c );
   }
-  sbi( PORTC, ( 1 << 3 ) ); // digitalWrite(LCD_CS,HIGH);   
+  sbi( PORTC, LCD_CS_BitMask ); // digitalWrite(LCD_CS,HIGH);   
 }
 
 void V_line(unsigned int x, unsigned int y, unsigned int l, unsigned int c) 
 {	
   unsigned int i,j;
   Lcd_Write_Com( 0x02c ); //write_memory_start
-  sbi( PORTC, ( 1 << 2 ) ); // digitalWrite( LCD_RS,HIGH );
-  cbi( PORTC, ( 1 << 3 ) ); // digitalWrite( LCD_CS,LOW );
-  l=l+y;
+  sbi( PORTC, LCD_RS_BitMask ); // digitalWrite( LCD_RS,HIGH );
+  cbi( PORTC, LCD_CS_BitMask ); // digitalWrite( LCD_CS,LOW );
+  l = l + y;
   Address_set( x, y, x, l );
   j = l * 2;
   for ( i = 1; i <= j; i++ )
   {
-    Lcd_Write_Data(c);
+    Lcd_Write_Data( c >> 8 );
+    Lcd_Write_Data( c );
   }
-  sbi( PORTC, ( 1 << 3 ) ); // digitalWrite(LCD_CS,HIGH);   
+  sbi( PORTC, LCD_CS_BitMask ); // digitalWrite(LCD_CS,HIGH);   
 }
 
 void Rect(unsigned int x,unsigned int y,unsigned int w,unsigned int h,unsigned int c)
 {
-  H_line(x  , y  , w, c);
-  H_line(x  , y+h, w, c);
-  V_line(x  , y  , h, c);
-  V_line(x+w, y  , h, c);
+  H_line(x  , y  , w, c );
+  H_line(x  , y+h, w, c );
+  V_line(x  , y  , h, c );
+  V_line(x+w, y  , h, c );
 }
 
 void Rectf(unsigned int x,unsigned int y,unsigned int w,unsigned int h,unsigned int c)
@@ -203,8 +205,8 @@ void Rectf(unsigned int x,unsigned int y,unsigned int w,unsigned int h,unsigned 
   unsigned int i;
   for ( i = 0; i < h; i++ )
   {
-    H_line( x, y  , w, c);
-    H_line( x, y+i, w, c);
+    H_line( x, y  , w, c );
+    H_line( x, y+i, w, c );
   }
 }
 
@@ -213,8 +215,8 @@ void Lcd_Clear( unsigned int j )
   unsigned int i, m;
 
   Lcd_Write_Com( 0x02c ); //write_memory_start
-  digitalWrite( LCD_RS, HIGH );
-  digitalWrite( LCD_CS, LOW );
+  sbi( PORTC, LCD_RS_BitMask ); // digitalWrite( LCD_RS, HIGH );
+  cbi( PORTC, LCD_CS_BitMask ); // digitalWrite( LCD_CS, LOW );
   Address_set( 0, 0, 479, 399 );
 
   for ( i = 0; i < 480; i++ )
@@ -222,16 +224,16 @@ void Lcd_Clear( unsigned int j )
     {
       Lcd_Write_Data( j );
     }
-  digitalWrite(LCD_CS,HIGH);   
+	sbi( PORTC, LCD_CS_BitMask );	//	digitalWrite(LCD_CS,HIGH);  
 }
   void Plot( unsigned int x, unsigned int y, unsigned int c )
 	{
 		Lcd_Write_Com( 0x02c ); //write_memory_start
-		digitalWrite( LCD_RS, HIGH );
-		digitalWrite( LCD_CS, LOW );
+	  sbi( PORTC, LCD_RS_BitMask ); // digitalWrite( LCD_RS, HIGH );
+	  cbi( PORTC, LCD_CS_BitMask ); // digitalWrite( LCD_CS, LOW );
 		Address_set( x, y, x, y + 1 );
-		Lcd_Write_Data(c);
-		Lcd_Write_Data(c);
-		digitalWrite(LCD_CS,HIGH);  
+		Lcd_Write_Data( c >> 8 );
+		Lcd_Write_Data( c );
+		sbi( PORTC, LCD_CS_BitMask );	//	digitalWrite(LCD_CS,HIGH);  
 	}
 }
