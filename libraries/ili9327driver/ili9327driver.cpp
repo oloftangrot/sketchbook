@@ -4,7 +4,7 @@
 //   This is a driver for the TFT 3.5 Inch 400x240 touch shield from http://www.mcufriends.com
 //   Since the shield is fixed the wiring defines is given here and
 //   there is no interface to define them using an API call. The graphic controller is controlled 
-//   in serial 8-bit mode.
+//   in 8-bit mode.
 //
 namespace ili9327 {
 
@@ -67,16 +67,16 @@ void Lcd_Init( void )
   digitalWrite( LCD_CS, HIGH );
   digitalWrite( LCD_REST, HIGH );
 
-  digitalWrite(LCD_REST,HIGH);
+  digitalWrite( LCD_REST, HIGH );
   delay(5); 
-  digitalWrite(LCD_REST,LOW);
+  digitalWrite( LCD_REST, LOW );
   delay(15);
-  digitalWrite(LCD_REST,HIGH);
+  digitalWrite( LCD_REST, HIGH );
   delay(15);
 
-  digitalWrite(LCD_CS,HIGH);
-  digitalWrite(LCD_WR,HIGH);
-  digitalWrite(LCD_CS,LOW);  //CS
+  digitalWrite( LCD_CS, HIGH );
+  digitalWrite( LCD_WR, HIGH );
+  digitalWrite( LCD_CS, LOW );  //CS
 
   Lcd_Write_Com(0xE9);
   Lcd_Write_Data(0x20);
@@ -219,10 +219,11 @@ void Lcd_Clear( unsigned int j )
   cbi( PORTC, LCD_CS_BitMask ); // digitalWrite( LCD_CS, LOW );
   Address_set( 0, 0, 479, 399 );
 
-  for ( i = 0; i < 480; i++ )
-    for ( m = 0; m < 400; m++ )
+  for ( i = 0; i < 400; i++ )
+    for ( m = 0; m < 240; m++ )
     {
-      Lcd_Write_Data( j );
+      Lcd_Write_Data( j >> 8 );
+	    Lcd_Write_Data( j );
     }
 	sbi( PORTC, LCD_CS_BitMask );	//	digitalWrite(LCD_CS,HIGH);  
 }

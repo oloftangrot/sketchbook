@@ -13,7 +13,9 @@ void drawRoundRect( int x1, int y1, int x2, int y2 );
 void setFont( unsigned char* font );
 void print( char *st, int x, int y, int deg = 0 );
 void setColor( unsigned char r, unsigned char g, unsigned char b );
+void setColor( unsigned int c );
 void setBackColor( unsigned char r, unsigned char g, unsigned char b );
+void setBackColor( unsigned int c );
 void test( void );
 }
 #endif

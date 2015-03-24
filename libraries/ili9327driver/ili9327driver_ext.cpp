@@ -29,6 +29,12 @@ const int disp_y_size = 240;
 const int disp_x_size = 400;
 struct current_font	cfont;
 
+void setColor( unsigned int c )
+{
+	fch = c >> 8;
+	fcl = c;
+}
+
 void setColor( unsigned char r, unsigned char g, unsigned char b )
 {
 	fch = ( ( r & 248 ) | g >> 5 );
@@ -39,6 +45,13 @@ void setBackColor( unsigned char r, unsigned char g, unsigned char b)
 {
 	bch = ( ( r & 248 ) | g >> 5 );
 	bcl = ( ( g & 28 ) << 3 | b >> 3 );
+	transparent = false;
+}
+
+void setBackColor( unsigned int c )
+{
+	bch = c >> 8;
+	bcl = c ;
 	transparent = false;
 }
 
