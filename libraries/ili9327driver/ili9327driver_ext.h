@@ -7,6 +7,8 @@
 #define CENTER 9998
 
 namespace ili9327_ext {
+extern const int disp_y_size;
+extern const int disp_x_size;
 
 void fillCircle( int x, int y, int radius );
 void drawRoundRect( int x1, int y1, int x2, int y2 );
