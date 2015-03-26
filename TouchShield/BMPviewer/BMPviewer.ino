@@ -117,24 +117,28 @@ void bmpDrawFromRoot() {
         Serial.println( tW );
         int start = bmpHeight + ( ( tH - bmpHeight ) / 2 );
         for ( row = 0; row < bmpHeight; row++ ) { // For each scanline...
-            pos = bmpImageoffset + ( row * rowSize );
-            bmpFile.seek( pos );
-            buffidx = sizeof( sdbuffer ); // Force buffer reload
-// TODO            tft.goTo(0, start - row);
-
+          pos = bmpImageoffset + ( row * rowSize );
+          bmpFile.seek( pos );
+          buffidx = sizeof( sdbuffer ); // Force buffer reload
+          ili9327::Lcd_Write_Com( 0x02c ); //write_memory_start
+          sbi( PORTC, LCD_RS_BitMask ); // digitalWrite( LCD_RS,HIGH );
+          cbi( PORTC, LCD_CS_BitMask ); // digitalWrite( LCD_CS,LOW );
+          ili9327::Address_set(row, 0, row, 400 ); // TODO fix usage of fixed width
           for ( col = 0; col < bmpWidth; col++ ) { // For each column...
             if ( buffidx >= sizeof( sdbuffer ) ) { // Indeed
               bmpFile.read( sdbuffer, sizeof( sdbuffer ) );
               buffidx = 0; // Set index to beginning
             }
-
-            // Convert pixel from BMP to TFT format
             b = sdbuffer[buffidx++];
             g = sdbuffer[buffidx++];
             r = sdbuffer[buffidx++];
-// TODO            tft.writeData( Color565( r, g, b ) );
-            ili9327::Plot( row, col, Color565( r, g, b ) );
+            // Convert pixel from BMP to TFT 565-format
+            unsigned int c = Color565( r, g, b );
+            // Plot the pixel
+            ili9327::Lcd_Write_Data( c >> 8);
+            ili9327::Lcd_Write_Data( c );
           } // end pixel
+          sbi( PORTC, LCD_CS_BitMask ); // digitalWrite(LCD_CS,HIGH);   
         } // end scanline
         Serial.print( F("Loaded in ") );
         Serial.print( millis() - startTime );
@@ -149,16 +153,16 @@ void bmpDrawFromRoot() {
 
 uint16_t read16( File f ) {
   uint16_t result;
-  ((uint8_t *)&result)[0] = f.read(); // LSB
-  ((uint8_t *)&result)[1] = f.read(); // MSB
+  ( (uint8_t *)&result )[0] = f.read(); // LSB
+  ( (uint8_t *)&result )[1] = f.read(); // MSB
   return result;
 }
 
 uint32_t read32(File f) {
   uint32_t result;
-  ((uint8_t *)&result)[0] = f.read(); // LSB
-  ((uint8_t *)&result)[1] = f.read();
-  ((uint8_t *)&result)[2] = f.read();
-  ((uint8_t *)&result)[3] = f.read(); // MSB
+  ( (uint8_t *)&result )[0] = f.read(); // LSB
+  ( (uint8_t *)&result )[1] = f.read();
+  ( (uint8_t *)&result )[2] = f.read();
+  ( (uint8_t *)&result )[3] = f.read(); // MSB
   return result;
 }
