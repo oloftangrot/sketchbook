@@ -13,7 +13,7 @@ SoftwareSerial hc05( 10, 11 ); // RX, TX
 int ledpin = 13; // led on D13 will show blink on / off
 int BluetoothData; // the data given from Computer
 Servo servo;
-int pwm = 90;
+int pwm = 120;
 
 void setup() {
   servo.attach( servoPin ); 
@@ -34,19 +34,21 @@ void loop() {
       digitalWrite( ledpin, 1 );
 //      hc05.println( "LED  On D13 ON ! " );
 //      hc05.println( "+" );
-      pwm++;
+      pwm += 1;
       servo.write( pwm );
+      delay( 10 );
     }
     if (BluetoothData == '0') {// if number 0 pressed ....
       digitalWrite(ledpin,0);
-//      hc05.println("LED  On D13 Off ! ");
-//      hc05.println( "-" );
-      pwm--;
+ //     hc05.println("LED  On D13 Off ! ");
+ //     hc05.println( "-" );
+      pwm -= 1;
       servo.write( pwm );
+      delay( 10 );
     }
   }
 //  servo.refresh();
-  delay(100);// prepare for next data ...
+  delay(1);// prepare for next data ...
 }
 
 
