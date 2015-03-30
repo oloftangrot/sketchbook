@@ -51,7 +51,7 @@ void loop() {
     }
   }
 //  servo.refresh();
-  delay(100);// prepare for next data ...
+//  delay(1);// prepare for next data ...
 }
 
 
