@@ -50,7 +50,9 @@ void loop() {
 //      hc05.println( "+" );
       pos = true;
       repeatTimer = repeatStart; // Set the loop count for the next command.
-      pwmLoopTimer = 1; // Initialise with 1 to get a fast response on the first push.
+      if ( 0 == pwmLoopTimer ) { // Update only if not already running
+        pwmLoopTimer = 1; // Initialise with 1 to get a fast response on the first push.
+      }
     }
     if (BluetoothData == '0') {// if number 0 pressed ....
       digitalWrite(ledpin,0);
@@ -58,7 +60,9 @@ void loop() {
 //      hc05.println( "-" );
       pos = false;
       repeatTimer = repeatStart;
-      pwmLoopTimer = 1; // Initialise with 1 to get a fast response on the first push.
+      if ( 0 == pwmLoopTimer ) { // Update only if not already running
+        pwmLoopTimer = 1; // Initialise with 1 to get a fast response on the first push.
+      }
     }
     if ( pwmLoopTimer ) { // When the loop timer is active an the movment commands are acitve
       pwmLoopTimer--;
