@@ -26,7 +26,7 @@ unsigned int repeatTimer = 0;
 unsigned int pwmLoopTimer = 0;
 const unsigned int pwmLoopTimerStart = 1;
 const unsigned int repeatStart = 200;
-const unsigned char stepSize = 4;
+const unsigned char stepSize = 2;
 boolean pos;
 
 void setup() {
