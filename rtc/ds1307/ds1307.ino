@@ -5,7 +5,14 @@
 
 RTC_DS1307 rtc;
 
+bool f = false;
+const unsigned char relay = 10;
+void timer( void );
+
 void setup () {
+  pinMode( relay, OUTPUT );
+  f = false;
+  digitalWrite( relay, 1 );
   Serial.begin(57600);
 #ifdef AVR
   Wire.begin();
@@ -17,11 +24,13 @@ void setup () {
   if (! rtc.isrunning()) {
     Serial.println("RTC is NOT running!");
     // following line sets the RTC to the date & time this sketch was compiled
-    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+//    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
     // This line sets the RTC with an explicit date & time, for example to set
     // January 21, 2014 at 3am you would call:
-    // rtc.adjust(DateTime(2014, 1, 21, 3, 0, 0));
+    rtc.adjust(DateTime(2015, 4, 26, 7, 16, 0));
   }
+//  rtc.adjust(DateTime(2015, 4, 26, 19, 16, 0));
+
 }
 
 void loop () {
@@ -65,4 +74,70 @@ void loop () {
     
     Serial.println();
     delay(3000);
+    timer() ;
+#if 0
+    digitalWrite( relay, f );
+    if ( f ) {
+      f = false;
+    }
+    else {
+      f = true;
+    }
+#endif
+}
+
+struct myTime {
+  unsigned char h, m;
+};
+
+struct myTime onTime {
+  21, 39
+};
+
+struct myTime offTime {
+  21, 40
+};
+
+int myTime2int( struct myTime & mT ) {
+  return 60 * mT.h + mT.m;
+}
+void timer ( void )
+{
+  DateTime now = rtc.now();
+  int current = now.hour() * 60 + now.minute();
+  const int on = myTime2int( onTime );
+  const int off = myTime2int( offTime );
+  
+  if ( on < off ) {  // This happens when on time is like 01:00 and off time is like 02:00
+    if ( ( current < on ) || ( current >= off ) ) { // Relay shall be off!
+      Serial.println( "Should be off!" );           
+      if ( f ) {
+        digitalWrite( relay, 1 );
+        f = false;
+      }
+    }
+    if ( ( current >=  on ) && ( current < off ) ) {
+      Serial.println( "Should be on!" );           
+       if ( !f ) {
+        digitalWrite( relay, 0 );
+        f = true;
+      }
+    }
+  }
+  else { // on > off, this happens when on time is like 23:00 and off time is 01:00
+    if ( ( current < on ) && ( current >= off ) ) { // Relay shall be off!
+      Serial.println( "Should be off!" );           
+      if ( f ) {
+        digitalWrite( relay, 1 );
+        f = false;
+      }
+    }
+    if ( ( current >=  on ) || ( current < off ) ) {
+      Serial.println( "Should be on!" );           
+       if ( !f ) {
+        digitalWrite( relay, 0 );
+        f = true;
+      }
+    }
+  }
 }
