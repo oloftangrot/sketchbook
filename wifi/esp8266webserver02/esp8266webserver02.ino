@@ -5,17 +5,18 @@ enum parseState {
   waitForArg2,
 };
 
-const char * www[1] = {
-  "GET/",
+const char * www[2] = {
+  "GET /",                 /* HTTP request */
+  "HTTP/1.0 404 \r\n\r\n"  /* Error response */
 };
 
-const char * commands[] = {
+const int numCommands = 3;
+const char * commands[ numCommands ] = {
   "test1/",
   "test12/",
   "sirpa/"
 };
-const int numCommands = 3;
-char flags[numCommands];
+boolean flags[ numCommands ];
   
 struct rules {
   int stringIdx;
@@ -51,7 +52,7 @@ void loop( void )
             Serial.println("Found GET command!"); 
             cnt = 0; 
             pS = waitForCommand;
-            for ( int i = 0; i < numCommands; i++ ) flags[i] = 0;
+            for ( int i = 0; i < numCommands; i++ ) flags[i] = true;
             commandCnt = numCommands;
           }
         }
@@ -60,17 +61,18 @@ void loop( void )
         break;
       case waitForCommand:
         for ( int i = 0; i < numCommands; i++ ) {
-          if ( flags[i] >= 0 ) {
-            if ( in == commands[ i ][ flags[ i ] ] ) {
-              flags[ i ]++;
-              if ( flags[ i ] == strlen( commands[ i ] ) ) {
+          if ( flags[i] ) {
+            if ( in == commands[ i ][ cnt ] ) {
+              if ( ( cnt + 1 ) == strlen( commands[ i ] ) ) {
                 Serial.print( "Found command " ); 
-                Serial.println( i ); 
-                pS = waitForGet;;
+                Serial.println( commands[ i ] ); 
+                cnt = -1; // Let the out of loop cnt++ increment to 0.
+                pS = waitForGet;
+                break; // Break out from the for loop
               }
             }
             else {
-              flags[i] = -1;
+              flags[i] = false;
               commandCnt--;
               Serial.print( "Command ruled out " );
               Serial.println( i );
@@ -78,12 +80,13 @@ void loop( void )
             }
           }
         }
+        cnt++;
         if ( 0 == commandCnt ) { 
           pS = waitForGet; 
+          cnt = 0;
           Serial.println( "Reset command search" );
         }
         break;
-     
-    } /* Switch */
+     } /* Switch */
   }
 }
