@@ -1,8 +1,8 @@
 enum parseState {
   waitForGet,
   waitForCommand,
-  waitForArg1,
-  waitForArg2,
+  waitForArg,
+  waitForTail,
 };
 
 const char * www[2] = {
@@ -17,13 +17,14 @@ const char * commands[ numCommands ] = {
   "sirpa/"
 };
 boolean flags[ numCommands ];
-  
+ 
 struct rules {
-  int stringIdx;
+  int numArgs;
   enum parseState nextS;
-} parseRules[] = {
-  { 0, waitForCommand },
-  { 1, waitForGet }
+} parseRules[ numCommands ] = {
+  { 1, waitForArg },
+  { 2, waitForArg },
+  { 0, waitForTail }
 };
 
 enum parseState pS = waitForGet;
@@ -39,6 +40,7 @@ void setup( void )
 int in;
 int cnt;
 int commandCnt;
+int cmd;
 
 void loop( void )
 {
@@ -67,7 +69,13 @@ void loop( void )
                 Serial.print( "Found command " ); 
                 Serial.println( commands[ i ] ); 
                 cnt = -1; // Let the out of loop cnt++ increment to 0.
-                pS = waitForGet;
+                cmd = i; // Save the found command
+                if ( 0 == parseRules[i].numArgs ) {
+                  pS = waitForGet;
+                }
+                else {
+                  pS = waitForArg ;
+                }
                 break; // Break out from the for loop
               }
             }
@@ -76,7 +84,6 @@ void loop( void )
               commandCnt--;
               Serial.print( "Command ruled out " );
               Serial.println( i );
-              Serial.println( cnt );
             }
           }
         }
@@ -87,6 +94,8 @@ void loop( void )
           Serial.println( "Reset command search" );
         }
         break;
-     } /* Switch */
+      case waitForTail:
+        break;      
+    } /* Switch */
   }
 }
