@@ -10,8 +10,9 @@ const char * www[2] = {
   "HTTP/1.0 404 \r\n\r\n"  /* Error response */
 };
 
-const int numCommands = 3;
+const int numCommands = 4;
 const char * commands[ numCommands ] = {
+  "favicon.ico",
   "test1/",
   "test12/",
   "sirpa/"
@@ -22,6 +23,7 @@ struct rules {
   int numArgs;
   enum parseState nextS;
 } parseRules[ numCommands ] = {
+  { 0, waitForTail },
   { 1, waitForArg },
   { 2, waitForArg },
   { 0, waitForTail }
