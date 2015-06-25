@@ -10,8 +10,11 @@ const unsigned char relay = 10;
 void timer( void );
 
 const unsigned char batteryPin = A0;
+// Input voltage devider constants
 const unsigned char Rgnd = 10; 
 const unsigned char Rload = 47;
+const unsigned char Vscale = 50; // 50 = 5 V * 10 
+const unsigned int  adcMax = 1024;
 int batteryVoltage;
 int inputVoltage( int pinVoltage );
 
@@ -151,5 +154,7 @@ void timer ( void )
 // Model conversion from voltage divider net.
 int inputVoltage( int pinVoltage )
 {
-   return ( Rgnd + Rload ) * pinVoltage / Rgnd ; 
+   unsigned int tmp = Vscale * pinVoltage;
+   tmp = tmp / Rgnd;
+   return ( ( Rgnd + Rload ) * tmp )/ adcMax ; 
 }
