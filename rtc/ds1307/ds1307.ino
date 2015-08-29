@@ -29,7 +29,7 @@ void setup () {
     // January 21, 2014 at 3am you would call:
     rtc.adjust(DateTime(2015, 4, 26, 7, 16, 0));
   }
-//  rtc.adjust(DateTime(2015, 4, 26, 19, 16, 0));
+//  rtc.adjust(DateTime(2015, 7, 5, 9, 0, 0));
 
 }
 

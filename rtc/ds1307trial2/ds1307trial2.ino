@@ -94,6 +94,18 @@ void loop () {
       f = true;
     }
 #endif
+    int in = analogRead( batteryPin );
+    Serial.print( "Cpu input ");
+    Serial.print( in, DEC);
+    Serial.println();
+    in = inputVoltage( in );
+    Serial.print( "Scaled divider input ");
+    Serial.print( in, DEC);
+    Serial.println();
+    bool o = schmidtTrigger( in );
+    if ( o )  Serial.println( "Output ON ");
+    else Serial.println( "Output OFF ");
+
 }
 
 struct myTime {
@@ -150,6 +162,18 @@ void timer ( void )
       }
     }
   }
+}
+
+bool schmidtTrigger( int uIn )
+{
+  static bool h = false;
+  if ( uIn > 120 ) { // 12.0 V
+    h = true;
+  }
+  if ( uIn < 110 ) { // 11.0 V
+    h = false;
+  }
+  return h;
 }
 // Model conversion from voltage divider net.
 int inputVoltage( int pinVoltage )
