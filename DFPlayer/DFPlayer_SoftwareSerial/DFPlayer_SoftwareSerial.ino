@@ -32,13 +32,14 @@
  *	name:		DFPlayer_Mini_Mp3 sample code
  *	Author:		lisper <lisper.li@dfrobot.com>
  *	Date:		2014-05-30
+ *      Modified:       2016-10-23 To fit with homebrew hardware, TaO
  *	Description:	connect DFPlayer Mini by SoftwareSerial, this code is test on Uno
  *			Note: the mp3 files must put into mp3 folder in your tf card 
  */
 #include <SoftwareSerial.h>
 #include <DFPlayer_Mini_Mp3.h>
 
-SoftwareSerial mySerial(10, 11); // RX, TX
+SoftwareSerial mySerial( 6, 5 ); // RX, TX
 
 //
 void setup () {
@@ -51,7 +52,8 @@ void setup () {
 
 
 //
-void loop () {        
+void loop () {
+        Serial.print( "Started playing." );  
 	mp3_play (1);
 	delay (6000);
 	mp3_next ();
