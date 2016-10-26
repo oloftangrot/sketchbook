@@ -39,7 +39,7 @@
 #include <SoftwareSerial.h>
 #include <DFPlayer_Mini_Mp3.h>
 
-SoftwareSerial mySerial( 6, 5 ); // RX, TX
+SoftwareSerial mySerial( 5, 6 ); // RX, TX
 
 //
 void setup () {
@@ -52,16 +52,18 @@ void setup () {
 
 
 //
-void loop () {
-        Serial.print( "Started playing." );  
-	mp3_play (1);
-	delay (6000);
-	mp3_next ();
-	delay (6000);
-	mp3_prev ();
-	delay (6000);
-	mp3_play (4);
-	delay (6000);
+void loop () {   
+#if 1 
+  Serial.println( "Play --" );
+  mp3_play ();
+  delay (6000);
+  Serial.println( "Next" );
+  mp3_next ();
+  delay (24000);
+#else
+  mySerial.print( "AA55" );
+  delay(100);
+#endif
 }
 
 /*
