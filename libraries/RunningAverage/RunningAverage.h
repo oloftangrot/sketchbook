@@ -37,7 +37,7 @@ public:
 
     input_t getElement( uint8_t idx );
     uint8_t getSize() { return _size; }
-    void setSize( uint8_t );
+    bool setSize( uint8_t );
 
 protected:
     uint8_t _size;

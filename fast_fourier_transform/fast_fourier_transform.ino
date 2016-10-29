@@ -13,8 +13,11 @@ visualizing the data.
 #define FFT_N 32 // set to 256 point fft
 
 #include <FFT.h> // include the library
+#include <RunningAverage.h>
+
 
 uint8_t test[ FFT_N ];
+RunningAverage ma[FFT_N / 2];
 
 void setup() {
   Serial.begin(115200); // use the serial port
@@ -22,6 +25,8 @@ void setup() {
   ADCSRA = 0xe5; // set the adc to free running mode
   ADMUX = 0x40; // use adc0
   DIDR0 = 0x01; // turn off the digital input for adc0
+  for ( int i = 0; i < FFT_N / 2; i++ ) // Assign sizes to the moving average filters.
+    (void) ma[i].setSize( 4 ); 
   for ( int i = 0; i < FFT_N/2; i++ ) {
     if ( i < FFT_N/4 ) {
       test[i] = i;
@@ -53,6 +58,8 @@ void loop() {
     fft_run(); // process the data in the fft
     fft_mag_log(); // take the output of the fft
     sei(); // turn interrupts back on
+    for ( int i = 0; i < FFT_N / 2; i++ )
+      ma[i].addValue( fft_log_out[i] );
     Serial.write(255); // send a start byte
     Serial.write( fft_log_out, FFT_N/2 ); // send out the data
 //    Serial.write( test, FFT_N ); // send out the data
