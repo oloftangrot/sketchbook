@@ -26,6 +26,17 @@
 
 RunningAverage::RunningAverage(uint8_t n)
 {
+  setSize( n );
+}
+
+RunningAverage::RunningAverage()
+{
+    _size = 0;
+    _ar = ( input_t *) NULL;
+}
+
+void RunningAverage::setSize( uint8_t n)
+{
     _size = n;
     _ar = ( input_t *) malloc( _size * sizeof( input_t ) );
     if ( _ar == NULL ) _size = 0;

@@ -25,7 +25,7 @@ typedef unsigned char input_t;
 class RunningAverage
 {
 public:
-    RunningAverage( void );
+    RunningAverage();
     RunningAverage( uint8_t );
     ~RunningAverage();
 
@@ -37,6 +37,7 @@ public:
 
     input_t getElement( uint8_t idx );
     uint8_t getSize() { return _size; }
+    void setSize( uint8_t );
 
 protected:
     uint8_t _size;
