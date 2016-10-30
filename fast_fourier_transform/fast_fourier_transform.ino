@@ -26,7 +26,7 @@ void setup() {
   ADMUX = 0x40; // use adc0
   DIDR0 = 0x01; // turn off the digital input for adc0
   for ( int i = 0; i < FFT_N / 2; i++ ) // Assign sizes to the moving average filters.
-    (void) ma[i].setSize( 4 ); 
+    (void) ma[i].setSize( 8 ); 
   for ( int i = 0; i < FFT_N/2; i++ ) {
     if ( i < FFT_N/4 ) {
       test[i] = i;
@@ -62,6 +62,10 @@ void loop() {
       ma[i].addValue( fft_log_out[i] );
     Serial.write(255); // send a start byte
     Serial.write( fft_log_out, FFT_N/2 ); // send out the data
+#if 1    
+    for ( int i = 0; i < FFT_N / 2; i++ ) // Send moving average data
+      Serial.write( ma[i].getAverage() );
+#endif      
 //    Serial.write( test, FFT_N ); // send out the data
 //    delay( 1000 );
     }
