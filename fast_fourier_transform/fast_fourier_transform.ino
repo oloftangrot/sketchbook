@@ -11,6 +11,7 @@ visualizing the data.
 // do #defines BEFORE #includes
 #define LOG_OUT 1 // use the log output function
 #define FFT_N 32 // set to 256 point fft
+#define LED 13 // Output pin to be used to indicate something.
 
 #include <FFT.h> // include the library
 #include <RunningAverage.h>
@@ -18,6 +19,8 @@ visualizing the data.
 
 uint8_t test[ FFT_N ];
 RunningAverage ma[FFT_N / 2];
+bool f = false;
+unsigned int ledDelay = 0;
 
 void setup() {
   Serial.begin(115200); // use the serial port
@@ -35,10 +38,18 @@ void setup() {
       test[i] = FFT_N/2 - i;
     }
   }
+  pinMode( LED, OUTPUT);     
+
 }
 
 void loop() {
   while(1) { // reduces jitter
+    if ( (ledDelay % 64) == 0 ) {
+      digitalWrite( LED, f );
+      if (f) f = false;
+      else f = true;
+    }
+    ledDelay++;
     cli();  // UDRE interrupt slows this way down on arduino1.0
     for (int i = 0 ; i < FFT_N ; i += 2) { // save 256 samples
       while(!(ADCSRA & 0x10)); // wait for adc to be ready
