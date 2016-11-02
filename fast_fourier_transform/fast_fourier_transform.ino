@@ -44,11 +44,13 @@ void setup() {
 
 void loop() {
   while(1) { // reduces jitter
+  #if 0
     if ( (ledDelay % 64) == 0 ) {
       digitalWrite( LED, f );
       if (f) f = false;
       else f = true;
     }
+  #endif
     ledDelay++;
     cli();  // UDRE interrupt slows this way down on arduino1.0
     for (int i = 0 ; i < FFT_N ; i += 2) { // save 256 samples
@@ -69,11 +71,21 @@ void loop() {
     fft_run(); // process the data in the fft
     fft_mag_log(); // take the output of the fft
     sei(); // turn interrupts back on
+    if ( fft_log_out[1] > 150  )
+    {
+      digitalWrite( LED, HIGH );
+    }
+    else 
+    {
+      digitalWrite( LED, LOW );
+    }
+#if 0    
     for ( int i = 0; i < FFT_N / 2; i++ )
       ma[i].addValue( fft_log_out[i] );
     Serial.write(255); // send a start byte
     Serial.write( fft_log_out, FFT_N/2 ); // send out the data
-#if 1    
+#endif    
+#if 0    
     for ( int i = 0; i < FFT_N / 2; i++ ) // Send moving average data
       Serial.write( ma[i].getAverage() );
 #endif      
