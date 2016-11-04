@@ -16,20 +16,28 @@ visualizing the data.
 #include <FFT.h> // include the library
 #include <RunningAverage.h>
 
+#include <SoftwareSerial.h>
+#include <DFPlayer_Mini_Mp3.h>
+
+SoftwareSerial mySerial( 5, 6 ); // RX, TX
+
 
 uint8_t test[ FFT_N ];
-RunningAverage ma[FFT_N / 2];
+//RunningAverage ma[FFT_N / 2];
 bool f = false;
+bool playing = false;
 unsigned int ledDelay = 0;
+unsigned int playDelay;
 
 void setup() {
-  Serial.begin(115200); // use the serial port
+//  Serial.begin( 9600 ); // use the serial port for the MiniMP3 player.
+//  Serial.begin(115200); // use the serial port for remote spectrum display.
   TIMSK0 = 0; // turn off timer0 for lower jitter - delay() and millis() killed
   ADCSRA = 0xe5; // set the adc to free running mode
   ADMUX = 0x40; // use adc0
   DIDR0 = 0x01; // turn off the digital input for adc0
-  for ( int i = 0; i < FFT_N / 2; i++ ) // Assign sizes to the moving average filters.
-    (void) ma[i].setSize( 8 ); 
+//  for ( int i = 0; i < FFT_N / 2; i++ ) // Assign sizes to the moving average filters.
+//    (void) ma[i].setSize( 8 ); 
   for ( int i = 0; i < FFT_N/2; i++ ) {
     if ( i < FFT_N/4 ) {
       test[i] = i;
@@ -39,13 +47,17 @@ void setup() {
     }
   }
   pinMode( LED, OUTPUT);     
-
+  
+  mySerial.begin( 9600 ); // Set speed for MiniMP3 player
+  mp3_set_serial( mySerial );	//set softwareSerial for DFPlayer-mini mp3 module 
+  delay( 1 );  //wait 1ms for mp3 module to set volume
+  mp3_set_volume ( 30 );
 }
 
 void loop() {
   while(1) { // reduces jitter
   #if 0
-    if ( (ledDelay % 64) == 0 ) {
+    if ( (ledDelay % 64) == 0 ) { // Create a blinking action on LED
       digitalWrite( LED, f );
       if (f) f = false;
       else f = true;
@@ -74,6 +86,11 @@ void loop() {
     if ( fft_log_out[1] > 150  )
     {
       digitalWrite( LED, HIGH );
+      if ( false == playing ) { // Start playing an prevent a new start.
+        playing = true;
+        playDelay = 0; // Reset playDelay counter
+        mp3_play();
+      }
     }
     else 
     {
@@ -91,5 +108,11 @@ void loop() {
 #endif      
 //    Serial.write( test, FFT_N ); // send out the data
 //    delay( 1000 );
+    if ( playing ) { // handle delay while playing
+      playDelay++;
+      if ( playDelay > 6000 ) {
+        playing = false;
+      }
     }
+  }
 }
