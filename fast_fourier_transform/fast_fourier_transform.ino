@@ -16,14 +16,15 @@ visualizing the data.
 #include <FFT.h> // include the library
 #include <RunningAverage.h>
 
+#undef SPECTRUM
 #include <SoftwareSerial.h>
 #include <DFPlayer_Mini_Mp3.h>
 
-SoftwareSerial mySerial( 5, 6 ); // RX, TX
+SoftwareSerial mp3Serial( 5, 6 ); // RX, TX
 
 
 uint8_t test[ FFT_N ];
-//RunningAverage ma[FFT_N / 2];
+RunningAverage ma(20);
 bool f = false;
 bool playing = false;
 unsigned int ledDelay = 0;
@@ -31,7 +32,9 @@ unsigned int playDelay;
 
 void setup() {
 //  Serial.begin( 9600 ); // use the serial port for the MiniMP3 player.
-//  Serial.begin(115200); // use the serial port for remote spectrum display.
+#ifdef SPECTRUM
+  Serial.begin(115200); // use the serial port for remote spectrum display.
+#endif
   TIMSK0 = 0; // turn off timer0 for lower jitter - delay() and millis() killed
   ADCSRA = 0xe5; // set the adc to free running mode
   ADMUX = 0x40; // use adc0
@@ -48,8 +51,8 @@ void setup() {
   }
   pinMode( LED, OUTPUT);     
   
-  mySerial.begin( 9600 ); // Set speed for MiniMP3 player
-  mp3_set_serial( mySerial );	//set softwareSerial for DFPlayer-mini mp3 module 
+  mp3Serial.begin( 9600 ); // Set speed for MiniMP3 player
+  mp3_set_serial( mp3Serial );	//set softwareSerial for DFPlayer-mini mp3 module 
   delay( 1 );  //wait 1ms for mp3 module to set volume
   mp3_set_volume ( 30 );
 }
@@ -62,8 +65,8 @@ void loop() {
       if (f) f = false;
       else f = true;
     }
-  #endif
     ledDelay++;
+  #endif
     cli();  // UDRE interrupt slows this way down on arduino1.0
     for (int i = 0 ; i < FFT_N ; i += 2) { // save 256 samples
       while(!(ADCSRA & 0x10)); // wait for adc to be ready
@@ -83,7 +86,7 @@ void loop() {
     fft_run(); // process the data in the fft
     fft_mag_log(); // take the output of the fft
     sei(); // turn interrupts back on
-    if ( fft_log_out[1] > 150  )
+    if ( ma.getAverage() > 150  )
     {
       digitalWrite( LED, HIGH );
       if ( false == playing ) { // Start playing an prevent a new start.
@@ -96,9 +99,8 @@ void loop() {
     {
       digitalWrite( LED, LOW );
     }
-#if 0    
-    for ( int i = 0; i < FFT_N / 2; i++ )
-      ma[i].addValue( fft_log_out[i] );
+    ma.addValue( fft_log_out[1] ); // Add channel 1 to moving average
+#ifdef SPECTRUM    
     Serial.write(255); // send a start byte
     Serial.write( fft_log_out, FFT_N/2 ); // send out the data
 #endif    

@@ -35,7 +35,7 @@ void draw() {
 //      print(  (int)inBuffer );
 //      print( ":" );
       count++;
-      if ( count == 32 ) {
+      if ( count == 16 ) {
         state = 2;
 //        println("END");
       }
