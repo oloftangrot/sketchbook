@@ -11,7 +11,7 @@
 //
 
 // DDS Reference Oscilliator Frequency, in Hz. (Remember, the PLL).
-#define DDS_REF   180000000
+#define DDS_REF   125000000
 
 // DDS Offset in Hz
 #define DDS_OSET  164  //DDS #2
@@ -21,19 +21,18 @@
 #define WSPR_TX_B     7.040000e6  // this is the bottom of the band. The station moves about.
 
 #define WSPR_DUTY  3 // transmit every N slices.
-
-// BUNKER: GB0SNB 20dbm (100mw)
-// WSPR Tone Data - line breaks in no parciular place, just to look pretty. (0-161).
-static byte WSPR_DATA_BUNKER[] = {1,1,2,2,0,2,0,0,1,0,0,0,3,1,3,0,0,2,3,0,2,1,0,3,1,1,3,2,0,0,2,2,2,
-              2,1,2,0,1,2,1,2,0,2,0,0,2,1,2,1,3,2,2,1,3,2,1,0,0,0,3,1,2,1,0,2,2,0,1,1,0,3,2,3,2,1,0,
-              1,0,0,3,2,2,3,0,3,1,0,0,0,1,3,0,3,0,1,0,0,0,1,0,2,0,2,2,3,2,2,3,0,2,3,3,1,0,3,1,0,0,3,
-              3,2,1,2,0,0,3,3,1,0,2,0,0,2,1,0,1,0,0,1,1,2,2,0,0,0,2,2,3,3,0,1,0,1,3,0,2,2,3,1,0,2,2}; // 162 bits
-
-//HOME: M1GEO 23dbm (200mw)
-static byte WSPR_DATA_HOME[] = {3,3,0,0,2,0,2,0,1,0,2,0,1,3,1,2,2,2,3,0,2,1,2,3,1,1,1,2,0,0,0,2,0,
-            2,3,0,0,1,2,1,2,2,0,0,2,2,3,0,1,1,2,2,3,3,2,1,2,2,0,1,3,0,3,2,2,0,2,3,3,0,3,0,3,0,3,0,
-            1,0,2,3,2,2,3,2,3,1,0,2,2,1,1,2,1,0,3,0,2,2,1,2,0,0,0,0,1,2,2,1,0,2,3,3,1,0,3,3,0,2,1,
-            1,0,3,0,0,2,3,3,3,2,0,0,0,0,3,0,3,2,2,3,1,0,2,0,0,2,2,2,3,3,2,3,2,3,3,2,0,0,3,1,0,2,2}; // 162 bits
+/*
+** ./wspr0 -t -X -c SA2KAA -g KP03dv -dBm 20 | awk '{print $2}' | sed ':a;N;$!ba;s/\n/,/g'
+*/ 
+//HOME: SA2KAA -20dbm (???mw)
+static byte WSPR_DATA_HOME[] = {
+  3,3,2,2,2,2,2,2,3,2,0,0,3,1,1,0,2,0,1,2,2,3,2,3,3,1,1,2,0,2,0,2,
+  2,0,3,0,0,1,0,1,0,0,2,0,0,2,3,2,3,1,0,2,1,3,0,1,0,0,0,1,1,2,3,0,
+  0,2,0,1,3,2,3,2,1,0,1,0,1,0,0,3,0,0,3,0,1,1,2,0,2,1,1,2,1,2,3,0,
+  0,2,1,0,0,0,0,2,3,0,2,1,2,0,3,3,3,2,3,3,2,0,3,3,0,3,0,2,0,1,3,1,
+  2,2,2,0,0,3,2,3,2,0,1,3,2,2,2,0,0,0,2,3,1,2,3,0,3,3,0,0,2,1,1,0,
+  2,0
+}; // 162 bits
 
 #define WSPR_DATA WSPR_DATA_HOME
 
@@ -47,10 +46,10 @@ static byte WSPR_DATA_HOME[] = {3,3,0,0,2,0,2,0,1,0,2,0,1,3,1,2,2,2,3,0,2,1,2,3,
 // Libraries
 #include <stdint.h>
 #include <SoftwareSerial.h>
-#include <TinyGPS.h>
+#include <TinyGPS++.h>
 
 // GPS Stuff
-TinyGPS gps;
+TinyGPSPlus gps;
 SoftwareSerial nss(3, 4);  //GPS RX 3, TX 4
 
 // Variables
@@ -60,7 +59,6 @@ int year;
 byte month, day, hour, minute, second, hundredths, Nsatellites, ret, duty, band;
 unsigned long fix_age, fail;
 char sz[32];
-
 
 void setup()
 {
@@ -72,20 +70,20 @@ void setup()
   pinMode (GPS_LED,   OUTPUT);
   
   // Setup RS232
-  Serial.begin(4800);
-  //nss.begin(4800);
+  Serial.begin( 115200 );
+  nss.begin( 9600 );
   
-  sprintf(sz, "\nM1GEO Compiled %s %s", __TIME__, __DATE__);
-  Serial.println(sz);
+//  sprintf(sz, "\nSA2KAA Compiled %s %s", __TIME__, __DATE__);
+  Serial.print( F("\nSA2KAA Compiled ") );
+  Serial.print( F(__TIME__) );
+  Serial.println( F(__DATE__) );
   
-  Serial.print("\n\nDDS Reset   ");
+  Serial.print( F("\n\nDDS Reset " ) );
   delay(900);
   frequency(0);
   delay(100);
-  Serial.println("OK");
-  
+  Serial.println( F("OK") );
   duty = 0;
-  
 }
 
 void loop()
@@ -93,22 +91,34 @@ void loop()
   fail++;
   ret = feedgps();
   
-  if (fail == 60000) {
+  if ( fail == 60000 ) {
     digitalWrite (GPS_LED, LOW);
-    Serial.println("GPS: No Data.");
+    Serial.println( F("GPS: No Data.") );
+    fail = 0;
   }
   
-  if (ret>0) {
-    Nsatellites = gps.satellites();
-    gps.crack_datetime(&year, &month, &day, &hour, &minute, &second, &hundredths, &fix_age);
-    if (fix_age == TinyGPS::GPS_INVALID_AGE) {
-      Serial.println("GPS: No Fix.");
+  if ( ret > 0 ) {
+//    Nsatellites = gps.satellites();
+   Nsatellites = 1;
+//    gps.crack_datetime(&year, &month, &day, &hour, &minute, &second, &hundredths, &fix_age);
+//    if (fix_age == TinyGPS::GPS_INVALID_AGE) {
+    if ( !gps.time.isValid() ) {
+      Serial.println( F("GPS: No Fix.") );
       digitalWrite (GPS_LED, LOW);
-    } else {
+    } 
+    else {
       digitalWrite (GPS_LED, HIGH);
-      sprintf(sz, "Date %02d/%02d/%02d, Time %02d:%02d:%02d (Sats: %02d, WSPR Duty: %d, GPS Age: %lu ms, GPS Feed: %lu).", day, month, year, hour, minute, second, Nsatellites, (duty % WSPR_DUTY), fix_age, fail);
-      Serial.println(sz);
+      hour =  gps.time.hour();
+      minute = gps.time.minute();
+      second = gps.time.second();
+//      sprintf(sz, "Date %02d/%02d/%02d, Time %02d:%02d:%02d (Sats: %02d, WSPR Duty: %d, GPS Age: %lu ms, GPS Feed: %lu).", day, month, year, hour, minute, second, Nsatellites, (duty % WSPR_DUTY), fix_age, fail);
+//      sprintf(sz, "Time %02d:%02d:%02d ", hour, minute, second );
+//      Serial.println(sz);
       
+      //(Sats: %02d, WSPR Duty: %d, GPS Age: %lu ms, GPS Feed: %lu).", Nsatellites, (duty % WSPR_DUTY), fix_age, fail);
+   
+  //    Serial.println(sz);
+      Serial.print( F( "Time") ); Serial.print( hour ); Serial.print( " " ); Serial.print( minute ); Serial.print( " " ); Serial.println( second );
       if(band % 2 == 0) {
         WSPR_TXF = (WSPR_TX_A+DDS_OSET) + random(10, 190); // always choose a frequency, it mixes it all up a little with the pRNG.
       } else {
@@ -117,13 +127,13 @@ void loop()
       
       if ( (minute % 2 == 0) && (second >= 1) && (second <= 4) ) {  // start transmission between 1 and 4 seconds, on every even minute
         if (duty % WSPR_DUTY == 0) {
-          Serial.print("Beginning WSPR Transmission on ");
+          Serial.print(F("Beginning WSPR Transmission on ") );
           Serial.print(WSPR_TXF-DDS_OSET);
-          Serial.println(" Hz.");
+          Serial.println( F(" Hz.") );
           wsprTX();
           duty++;
           band++;
-          Serial.println(" Transmission Finished.");    
+          Serial.println( F(" Transmission Finished.") );    
         } else {
           duty++;
           digitalWrite (LED, LOW);
@@ -202,9 +212,9 @@ void wsprTXtone(int t) {
   if ((t >= 0) && (t <= 3) ) {
     frequency((WSPR_TXF + (t * 2))); // should really be 1.4648 Hz not 2.
   } else {
-    Serial.print("Tone #");
+    Serial.print( F("Tone #") );
     Serial.print(t);
-    Serial.println(" is not valid.  (0 <= t <= 3).");
+    Serial.println( F(" is not valid.  (0 <= t <= 3).") );
   }
 }
 
@@ -222,8 +232,9 @@ void wsprTX() {
 
 static bool feedgps()
 {
-  while (Serial.available()) {
-    if (gps.encode(Serial.read())) {
+  while ( nss.available() ) {
+    if ( gps.encode( nss.read() ) ) {
+//      Serial.println( F("3>") );
       return true;
     }
   }
