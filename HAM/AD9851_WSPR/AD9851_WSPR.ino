@@ -60,6 +60,11 @@ byte month, day, hour, minute, second, hundredths, Nsatellites, ret, duty, band;
 unsigned long fix_age, fail;
 char sz[32];
 
+// Prototype declarations
+void ad9850_test( void );
+void sendFrequency( float frequency );
+
+// Arduino initializer function.
 void setup()
 {
   // Set all pins to output states
@@ -80,7 +85,7 @@ void setup()
   
   Serial.print( F("\n\nDDS Reset " ) );
   delay(900);
-  frequency(0);
+  sendFrequency( 0.f );
   delay(100);
   Serial.println( F("OK") );
   duty = 0;
@@ -88,6 +93,7 @@ void setup()
 
 void loop()
 {
+//  ad9850_test(); // Test infinately
   fail++;
   ret = feedgps();
   
@@ -125,8 +131,8 @@ void loop()
         WSPR_TXF = (WSPR_TX_B+DDS_OSET) + random(10, 190); // always choose a frequency, it mixes it all up a little with the pRNG.
       }
       
-      if ( (minute % 2 == 0) && (second >= 1) && (second <= 4) ) {  // start transmission between 1 and 4 seconds, on every even minute
-        if (duty % WSPR_DUTY == 0) {
+      if ( ( minute % 2 == 0) && (second >= 1) && (second <= 4) ) {  // start transmission between 1 and 4 seconds, on every even minute
+        if ( duty % WSPR_DUTY == 0 ) {
           Serial.print(F("Beginning WSPR Transmission on ") );
           Serial.print(WSPR_TXF-DDS_OSET);
           Serial.println( F(" Hz.") );
@@ -138,7 +144,7 @@ void loop()
           duty++;
           digitalWrite (LED, LOW);
           digitalWrite (GPS_LED, LOW);
-          delay(5000); // so we miss the window to start TX.
+          delay( 5000 ); // so we miss the window to start TX.
           flash_led(Nsatellites, GPS_LED); // flash the number of GPSes we have.
           flash_led(WSPR_DUTY, LED); // flash the WSPR duty.
         }
@@ -151,7 +157,7 @@ void loop()
     fail = 0;
   }
 }
-
+#if 0
 void frequency(unsigned long frequency) {
   unsigned long tuning_word = (frequency * pow(2, 32)) / DDS_REF;
   digitalWrite (DDS_LOAD, LOW); // take load pin low
@@ -191,6 +197,7 @@ void outZero() {
   digitalWrite(DDS_DATA, LOW);
   digitalWrite(DDS_CLOCK, HIGH);
 }
+#endif
 
 void flash_led(unsigned int t, int l) {
   unsigned int i = 0;
@@ -210,7 +217,7 @@ void flash_led(unsigned int t, int l) {
 
 void wsprTXtone(int t) {
   if ((t >= 0) && (t <= 3) ) {
-    frequency((WSPR_TXF + (t * 2))); // should really be 1.4648 Hz not 2.
+    sendFrequency((WSPR_TXF + (t * 2))); // should really be 1.4648 Hz not 2.
   } else {
     Serial.print( F("Tone #") );
     Serial.print(t);
@@ -226,7 +233,7 @@ void wsprTX() {
     wsprTXtone( WSPR_DATA[i] );
     delay(682);
   }
-  frequency(0);
+  sendFrequency( 0.f );
   digitalWrite(LED, LOW);
 }
 
@@ -240,4 +247,34 @@ static bool feedgps()
   }
   return false;
 }
+#define pulseHigh(pin) {digitalWrite(pin, HIGH); digitalWrite(pin, LOW); }
 
+// transfer a byte a bit at a time LSB first to DATA
+void tfr_byte(byte data)
+{
+  for ( int i = 0; i < 8; i++, data >>= 1) {
+    digitalWrite( DDS_DATA, data & 0x01 );
+    pulseHigh( DDS_CLOCK);
+  }
+}
+
+// frequency of signwave (datasheet page 12) will be <sys clock> * <frequency tuning word> / 2^32
+void sendFrequency( float frequency) {
+  int32_t freq = frequency * 4294967296.0f / 125.0e6f;
+  for ( int b = 0; b < 4; b++, freq >>=8 ) {
+    tfr_byte( freq & 0xFF );
+  }
+//  tfr_byte(0x001);
+  tfr_byte( 0x0 );  // Phase and control register
+  pulseHigh( DDS_LOAD );
+}
+
+
+void ad9850_test( void ) {
+  for( ;; ) {
+    sendFrequency( 1200 );
+    delay( 200 );
+    sendFrequency( 2400 );
+    delay( 200 );
+  }
+}
