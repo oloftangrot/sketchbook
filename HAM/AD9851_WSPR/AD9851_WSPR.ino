@@ -216,8 +216,9 @@ void flash_led(unsigned int t, int l) {
 }
 
 void wsprTXtone(int t) {
-  if ((t >= 0) && (t <= 3) ) {
-    sendFrequency((WSPR_TXF + (t * 2))); // should really be 1.4648 Hz not 2.
+  if ( ( t >= 0 ) && ( t <= 3 ) ) {
+//    sendFrequency((WSPR_TXF + (t * 2))); // should really be 1.4648 Hz not 2.
+    sendFrequency( ( WSPR_TXF + ( t * 1.4648f ) ) ); // should really be 1.4648 Hz not 2.
   } else {
     Serial.print( F("Tone #") );
     Serial.print(t);
@@ -229,12 +230,12 @@ void wsprTX() {
   int i = 0;
 
   digitalWrite(LED, HIGH);
-  for (i=0;i<162;i++) {
+  for ( i = 0; i < 162; i++ ) {
     wsprTXtone( WSPR_DATA[i] );
-    delay(682);
+    delay( 682 );
   }
   sendFrequency( 0.f );
-  digitalWrite(LED, LOW);
+  digitalWrite( LED, LOW );
 }
 
 static bool feedgps()
