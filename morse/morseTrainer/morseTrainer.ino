@@ -3,12 +3,14 @@
  */
 
 // digital pin 2 has a pushbutton attached to it. Give it a name:
-char key = 2;
-char out = 13;
+const unsigned char key = 2;
+const unsigned char key_out = 5;
+const unsigned char host_out = 6;
+const unsigned char ON_DUTYCYCLE = 100;
 
 void test(void);
 
-#define MAXEVENT (128)
+#define MAXEVENT (100)
 struct {
   boolean b;
   int time ;
@@ -17,7 +19,7 @@ struct {
 unsigned char q_in=0;
 unsigned char q_out=0;
 unsigned char q_size = 0;
-const unsigned char XON_SIZE = 20;
+const unsigned char XON_SIZE = 25;
 const unsigned char XOFF_SIZE = MAXEVENT - XON_SIZE;
 const char XOFF = 19;
 const char XON = 17;
@@ -29,8 +31,9 @@ void pullQueue(void);
 void setup() {
   Serial.begin(115200);
   pinMode(key, INPUT);
-  pinMode(out, OUTPUT);
-//  Serial.write( "%%");
+  pinMode(key_out, OUTPUT);
+  pinMode(host_out, OUTPUT);
+  Serial.write( ">");
 }
 
 int getTime(void) {
@@ -52,7 +55,13 @@ boolean rx = false;
 void loop() {
 //  test();
   // read the input pin:
-  char keyState = digitalRead(key);
+  if ( digitalRead( key ) ) {
+    analogWrite( key_out, ON_DUTYCYCLE );
+  }
+  else {
+    analogWrite( key_out, 0 );
+  }
+  
   // print out the state of the button:
   if ( millis() >= t_next ) {
     pullQueue();
@@ -64,7 +73,10 @@ void pullQueue( void )
 {
   if ( q_size ) {
     out_state = queue[q_out].b;
-    digitalWrite( out, out_state );
+    if ( out_state )
+      analogWrite( host_out, ON_DUTYCYCLE );
+    else
+      analogWrite( host_out, 0 );
     t_change = millis() - t0; // Store set time.
     Serial.print('#');
     Serial.println( t_change );
@@ -121,9 +133,9 @@ void serialEvent() {
 
 void test(void) {
   for(;;) {
-    digitalWrite(out,true);  
+    digitalWrite(key_out,true);  
     delay(1);
-    digitalWrite(out,false);
+    digitalWrite(key_out,false);
     delay(1);  
   }
 }
