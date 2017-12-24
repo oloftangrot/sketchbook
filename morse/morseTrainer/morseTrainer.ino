@@ -7,6 +7,9 @@ const unsigned char key = 2;
 const unsigned char key_out = 5;
 const unsigned char host_out = 6;
 const unsigned char ON_DUTYCYCLE = 100;
+int count = 0;
+int xoff_cnt = 0;
+int rise_cnt = 0;
 
 void test(void);
 
@@ -19,7 +22,7 @@ struct {
 unsigned char q_in=0;
 unsigned char q_out=0;
 unsigned char q_size = 0;
-const unsigned char XON_SIZE = 25;
+const unsigned char XON_SIZE = 20;
 const unsigned char XOFF_SIZE = MAXEVENT - XON_SIZE;
 const char XOFF = 19;
 const char XON = 17;
@@ -33,6 +36,8 @@ void setup() {
   pinMode(key, INPUT);
   pinMode(key_out, OUTPUT);
   pinMode(host_out, OUTPUT);
+  analogWrite( host_out, 0);
+  analogWrite( key_out, 0);
   Serial.write( ">");
 }
 
@@ -78,7 +83,7 @@ void pullQueue( void )
     else
       analogWrite( host_out, 0 );
     t_change = millis() - t0; // Store set time.
-    Serial.print('#');
+    Serial.write('#');
     Serial.println( t_change );
     Serial.print( out_state );
     Serial.println( "%" );
@@ -100,9 +105,11 @@ void pullQueue( void )
  response.  Multiple bytes of data may be available.
  */
 void serialEvent() {
-  char c = (char)Serial.read(); 
-
-  if ('/' == c ){
+  char c = (char) Serial.read(); 
+  
+  count++;
+  if ('/' == c ) {
+    rise_cnt++;
     queue[q_in].b = true;
     t = 0; // Clear time for next frame.
     rx = true;
@@ -123,12 +130,18 @@ void serialEvent() {
     queue[q_in++].time = t;
     q_size++;
     if ( q_in >= MAXEVENT ) q_in = 0;
-    if ( XOFF_SIZE == q_size ) Serial.write( XOFF );
+    if ( XOFF_SIZE == q_size ) {
+      Serial.write( XOFF );
+      xoff_cnt++;
+    }
 //  Serial.write('E');
   }
+  else if ('?' == c ) {
+    Serial.println( count );
+    Serial.println( xoff_cnt );
+    Serial.println( rise_cnt );
+  }
 //  else Serial.write(c);
-      
-
 }
 
 void test(void) {
@@ -139,5 +152,4 @@ void test(void) {
     delay(1);  
   }
 }
-
 
