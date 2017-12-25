@@ -2,7 +2,7 @@
   morseTrainer
  */
 
-#define MAXEVENT (100)
+#define MAXEVENT (200)
 const unsigned char KEY = 2; // digital pin 2 has a pushbutton attached to it. Give it a name:
 const unsigned char KEY_OUT = 5;
 const unsigned char HOST_OUT = 6;
@@ -15,12 +15,15 @@ const char LF = 10; // Ctrl-J
 int count = 0;
 int xoff_cnt = 0;
 int rise_cnt = 0;
+int owerflow_cnt = 0;
+int q_max = 0;
 unsigned char q_in=0;
 unsigned char q_out=0;
 unsigned char q_size = 0;
+unsigned char flankDetector;
 
 void test(void);
-void pullQueue(void);
+void pullQueue(unsigned char flankDet);
 
 struct {
   boolean b;
@@ -34,6 +37,7 @@ void setup() {
   pinMode(KEY_OUT, OUTPUT);
   pinMode(HOST_OUT, OUTPUT);
   Serial.write( ">");
+  flankDetector = 0;
 }
 
 int getTime(void) {
@@ -53,23 +57,25 @@ boolean rx = false;
 
 // the loop routine runs over and over again forever:
 void loop() {
+  flankDetector = 3 & ( flankDetector << 1) ;
 //  test();
   // read the input pin:
   if ( digitalRead( KEY ) ) {
     analogWrite( KEY_OUT, ON_DUTYCYCLE );
+    flankDetector |=1;
   }
   else {
     analogWrite( KEY_OUT, 0 );
   }
-  
+    
   // print out the state of the button:
   if ( millis() >= t_next ) {
-    pullQueue();
+    pullQueue( flankDetector );
     if ( XON_SIZE == q_size ) Serial.write( XON );
   }
 }
 
-void pullQueue( void )
+void pullQueue( unsigned char flankDet )
 {
   if ( q_size ) {
     out_state = queue[q_out].b;
@@ -82,6 +88,8 @@ void pullQueue( void )
     Serial.println( t_change );
     Serial.print( out_state );
     Serial.println( "%" );
+    if ( 1 == flankDet ) Serial.println( "$1" );
+    if ( 2 == flankDet ) Serial.println( "$0" );
     t_next = t_change + queue[q_out].time;
     
     q_out++;
@@ -90,6 +98,16 @@ void pullQueue( void )
   }
   else { // Queue is empty.
     t_next = millis();
+    if ( 1 == flankDet ) {
+      Serial.write('#');
+      Serial.println( t_next );
+      Serial.println( "$1" );
+    }
+    if ( 2 == flankDet ) {
+      Serial.write('#');
+      Serial.println( t_next );
+      Serial.println( "$0" );
+    }
   }
 }
 
@@ -120,12 +138,14 @@ void serialEvent() {
     t = t*10+c-'0';
 //    Serial.write('.');
   }
-  else if ( rx && ( c == '*' )) {
+  else if ( rx && ( c == '\n' )) {
     rx = false;
     queue[q_in++].time = t;
     q_size++;
+    if ( q_size > q_max ) q_max = q_size;
     if ( q_in >= ( MAXEVENT - 1) ) q_in = 0;
     if ( XOFF_SIZE == q_size ) {
+      Serial.write( XOFF );
       Serial.write( XOFF );
       xoff_cnt++;
     }
@@ -135,6 +155,7 @@ void serialEvent() {
     Serial.println( count );
     Serial.println( xoff_cnt );
     Serial.println( rise_cnt );
+    Serial.println( q_max );
   }
 //  else Serial.write(c);
 }
