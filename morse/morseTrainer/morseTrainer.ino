@@ -33,7 +33,7 @@ struct {
 // the setup routine runs once when you press reset:
 void setup() {
   Serial.begin(115200);
-  pinMode(KEY, INPUT);
+  pinMode(KEY, INPUT_PULLUP);
   pinMode(KEY_OUT, OUTPUT);
   pinMode(HOST_OUT, OUTPUT);
   Serial.write( ">");
