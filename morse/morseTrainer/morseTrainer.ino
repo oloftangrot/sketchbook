@@ -2,7 +2,7 @@
   morseTrainer
  */
 
-#define MAXEVENT (200)
+#define MAXEVENT (100)
 const unsigned char KEY = 2; // digital pin 2 has a pushbutton attached to it. Give it a name:
 const unsigned char KEY_OUT = 5;
 const unsigned char HOST_OUT = 6;
@@ -145,7 +145,6 @@ void serialEvent() {
     if ( q_size > q_max ) q_max = q_size;
     if ( q_in >= ( MAXEVENT - 1) ) q_in = 0;
     if ( XOFF_SIZE == q_size ) {
-      Serial.write( XOFF );
       Serial.write( XOFF );
       xoff_cnt++;
     }
