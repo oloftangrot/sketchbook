@@ -1,6 +1,6 @@
 // include the library
-#include <EEPROM.h>
-#include <SPI.h>
+//#include <EEPROM.h>
+//#include <SPI.h>
 #include <LoRaLib.h>
 
 // create instance of LoRa class with default settings
