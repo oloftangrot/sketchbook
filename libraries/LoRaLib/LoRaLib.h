@@ -1,6 +1,7 @@
 #ifndef _LORALIB_H
 #define _LORALIB_H
 
+#define DEBUG
 #include <Arduino.h>
 #include <EEPROM.h>
 
