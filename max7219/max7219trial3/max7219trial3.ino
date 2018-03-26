@@ -1,7 +1,7 @@
 #include "LedControl.h" 
 
-// Pin 12 to Data In, 11 to Clk, 10 to LOAD, number of devices is 2 
-LedControl lc=LedControl(12,11,10,2);
+// Pin 12 to Data In, 10 to Clk, 11 to LOAD, number of devices is 2 
+LedControl lc=LedControl(12,10,11,2);
 
 void setup() { 
   // Initialize the MAX7219 devices 
