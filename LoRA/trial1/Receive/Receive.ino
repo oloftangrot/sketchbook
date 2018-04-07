@@ -17,7 +17,7 @@ LoRa lora;
 Packet pack;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   // initialize the LoRa module with default settings
   if(lora.begin() == ERR_NONE) {
