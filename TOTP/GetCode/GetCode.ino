@@ -30,7 +30,8 @@ void setup() {
     while ( 1 );
   }
   // Set up real time clock.
-  if ( ! rtc.isrunning() ) {
+  //{
+  if ( ! rtc.isrunning() )  {
     Serial.println( "RTC is NOT running!" );
     // following line sets the RTC to the date & time this sketch was compiled
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
@@ -39,7 +40,7 @@ void setup() {
     // rtc.adjust(DateTime(2014, 1, 21, 3, 0, 0));
   }
   // Initialize the MAX7219 device 
-  for(int k=0; k < 2; k++){ 
+  for(int k=0; k < 1; k++){ 
     lc.shutdown(k,false); // Enable display 
     lc.setIntensity(k,2); // Set brightness level (0 is min, 15 is max)
     lc.clearDisplay(k); // Clear display register 
@@ -49,7 +50,7 @@ void setup() {
 void loop() {
   DateTime now = rtc.now() ;
 
-  long GMT = now.unixtime() - 3600 -25; // Adjust for GMT+1 TZ.
+  long GMT = now.unixtime() - 3600 - 3600 ; // Adjust for GMT+1 TZ + daylight saveing hour.
   char* newCode = totp.getCode( GMT );
   if(strcmp( code, newCode) != 0 ) {
     strcpy( code, newCode);
